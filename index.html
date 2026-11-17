@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<title>휴직자 복무상황 신고서</title>
+<style>
+  :root{
+    --ink:#000;
+    --paper:#fefefe;
+    --shade:#eef0ea;
+    --navy:#16324a;
+    --seal:#a02020;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:'Batang','바탕','Nanum Myeongjo',serif;
+    background:#d9d9d4;
+    margin:0;
+    padding:28px 12px 70px;
+    color:var(--ink);
+  }
+  .frame{
+    max-width:860px;
+    margin:0 auto;
+  }
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:flex-end;
+    margin-bottom:12px;
+    font-family:'Malgun Gothic','맑은 고딕',sans-serif;
+  }
+  .toolbar label{
+    display:flex;align-items:center;gap:6px;
+    font-size:12.5px;
+    background:#fff;
+    border:1px solid #b7b7b0;
+    padding:6px 10px;
+    margin-right:auto;
+  }
+  .toolbar input[type=email]{
+    border:none;border-bottom:1px solid #999;
+    font-family:inherit;font-size:12.5px;
+    width:220px;
+  }
+  .toolbar button{
+    border:1px solid var(--navy);
+    background:#fff;
+    color:var(--navy);
+    padding:8px 14px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .toolbar button.primary{
+    background:var(--navy);
+    color:#fff;
+  }
+  .toolbar button:hover{opacity:0.85;}
+
+  .sheet{
+    background:var(--paper);
+    border:1px solid #999;
+    outline:1px solid #999;
+    outline-offset:5px;
+    padding:34px 46px 40px;
+  }
+  .title{
+    text-align:center;
+    font-size:27px;
+    font-weight:700;
+    letter-spacing:10px;
+    margin:0 0 6px;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:12px;
+    color:#444;
+    margin:0 0 22px;
+    font-family:'Malgun Gothic',sans-serif;
+  }
+
+  table.form{
+    width:100%;
+    border-collapse:collapse;
+    border-top:3px double var(--ink);
+    border-bottom:3px double var(--ink);
+    font-size:13.5px;
+  }
+  table.form td, table.form th{
+    border:1px solid #555;
+    padding:8px 10px;
+    vertical-align:middle;
+  }
+  th.label{
+    background:var(--shade);
+    width:150px;
+    text-align:center;
+    font-weight:700;
+    white-space:nowrap;
+    font-family:'Malgun Gothic',sans-serif;
+    font-size:13px;
+  }
+  td.field input[type="text"], td.field textarea{
+    width:100%;
+    border:none;
+    border-bottom:1px solid #bbb;
+    padding:5px 2px;
+    font-size:13.5px;
+    font-family:inherit;
+    background:transparent;
+  }
+  td.field textarea{border-bottom:none;resize:vertical;}
+  td.field input:focus, td.field textarea:focus{
+    outline:none;
+    border-bottom:1px solid var(--seal);
+  }
+  .note{
+    font-size:11.5px;
+    color:#666;
+    display:block;
+    margin-top:3px;
+    font-family:'Malgun Gothic',sans-serif;
+  }
+  .chk-line{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-right:16px;
+    white-space:nowrap;
+    font-family:'Malgun Gothic',sans-serif;
+    font-size:13px;
+  }
+  .chk-line input{transform:scale(1.1);}
+  .sub-item{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    margin:4px 0;
+    font-family:'Malgun Gothic',sans-serif;
+    font-size:13px;
+  }
+  .sub-item .idx{font-weight:700;min-width:18px;}
+  .inline-input{
+    border:none;border-bottom:1px solid #bbb;
+    font-family:inherit;font-size:13px;
+    width:50px;text-align:center;
+  }
+
+  /* signature / stamp area */
+  .sign-row{
+    margin-top:32px;
+    display:flex;
+    flex-wrap:nowrap;
+    justify-content:flex-end;
+    align-items:center;
+    gap:8px;
+    font-size:14px;
+    font-family:'Malgun Gothic',sans-serif;
+    white-space:nowrap;
+  }
+  .sign-row .nowrap{ white-space:nowrap; flex-shrink:0; }
+  .sign-row input.date-input{
+    width:40px;border:none;border-bottom:1px solid #999;
+    text-align:center;font-family:inherit;font-size:14px;
+    flex-shrink:0;
+  }
+  .sign-row input.name-input{
+    width:90px;border:none;border-bottom:1px solid #999;
+    text-align:center;font-family:inherit;font-size:14px;
+    flex-shrink:0;
+  }
+  .stamp-wrap{
+    position:relative;
+    width:150px;
+    height:56px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1.5px solid #888;
+    border-radius:4px;
+    background:#fff;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .stamp-wrap .placeholder-txt{
+    font-size:13px;
+    color:#888;
+    pointer-events:none;
+  }
+  .stamp-wrap canvas{
+    position:absolute;
+    top:0;left:0;
+    pointer-events:none;
+  }
+  .sig-tools{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .sig-tools button{
+    font-size:11px;
+    padding:3px 8px;
+    border:1px solid #999;
+    background:#fff;
+    cursor:pointer;
+    font-family:'Malgun Gothic',sans-serif;
+  }
+  .sig-tools button.confirm{
+    border-color:var(--navy);
+    color:var(--navy);
+    font-weight:600;
+  }
+  .sig-status{
+    font-size:11px;
+    color:var(--seal);
+    margin-left:4px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-box{
+    background:#fff;
+    padding:22px 26px 18px;
+    border-radius:8px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.3);
+    font-family:'Malgun Gothic',sans-serif;
+    text-align:center;
+  }
+  .modal-box h3{
+    margin:0 0 6px;
+    font-size:16px;
+  }
+  .modal-hint{
+    margin:0 0 10px;
+    font-size:12.5px;
+    color:#666;
+  }
+  #modalCanvas{
+    border:1px dashed #999;
+    border-radius:4px;
+    touch-action:none;
+    cursor:crosshair;
+    background:#fff;
+  }
+  .modal-actions{
+    display:flex;
+    gap:8px;
+    justify-content:flex-end;
+    margin-top:12px;
+  }
+  .modal-actions button{
+    border:1px solid #999;
+    background:#fff;
+    padding:8px 14px;
+    font-size:13px;
+    cursor:pointer;
+    font-family:inherit;
+    border-radius:4px;
+  }
+  .modal-actions button.confirm{
+    border-color:var(--navy);
+    background:var(--navy);
+    color:#fff;
+    font-weight:600;
+  }
+
+  .to{
+    text-align:center;
+    font-size:17px;
+    font-weight:700;
+    margin-top:26px;
+    letter-spacing:2px;
+  }
+
+  @media print{
+    body{background:#fff;padding:0;}
+    .toolbar, .sig-tools, .modal-overlay{display:none !important;}
+    .frame{max-width:none;}
+    .sheet{outline:none;border:none;padding:16px 30px;}
+    .stamp-wrap{border:1.5px solid #555;}
+  }
+
+  #abroad_details input:disabled, #q9_details input:disabled{
+    opacity:0.45;
+    cursor:not-allowed;
+  }
+  #abroad_details input[type="text"]:disabled{
+    background:#f2f2f0;
+    color:#aaa;
+    text-decoration:line-through;
+  }
+
+  .status-textarea{
+    width:100%;
+    min-height:80px;
+    border:1px solid #cfcfC7 !important;
+    border-radius:5px;
+    padding:10px 14px !important;
+    font-size:14px;
+    line-height:1.7;
+    background:#fffdf8;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .status-textarea:focus{
+    outline:none;
+    border-color:var(--navy) !important;
+    background:#fff;
+  }
+  .status-textarea::placeholder{
+    color:#a8a8a0;
+    line-height:1.7;
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="toolbar">
+    <label>제출 담당자 이메일
+      <input type="email" id="recipient_email" placeholder="예: hr-office@moel.go.kr" value="hye06@korea.kr" readonly="true">
+    </label>
+    
+    <button onclick="window.print()">인쇄 / PDF저장</button>
+    <!-- “제출하기” 버튼이 제거되었습니다 -->
+  </div>
+  
+  <p style="max-width:860px;margin:0 0 12px;font-family:'Malgun Gothic',sans-serif;font-size:11.5px;color:#a02020;text-align:right;">
+    ※ 메일 프로그램이 자동으로 열리지 않는 경우, 위 [인쇄/PDF저장] 버튼으로 저장한 후 담당자 이메일로 직접 첨부하여 제출해 주세요.
+  </p>
+
+  <div class="sheet" id="sheet">
+    <p class="title">휴직자 복무상황 신고서</p>
+    <p class="subtitle">(제91조의7 제1항 관련)</p>
+
+    <table class="form">
+      <tbody><tr>
+        <th class="label">1. 소&nbsp;&nbsp;속</th>
+        <td class="field"><input type="text" id="f_dept"></td>
+        <th class="label">2. 직&nbsp;&nbsp;급</th>
+        <td class="field"><input type="text" id="f_rank"></td>
+      </tr>
+      <tr>
+        <th class="label">3. 성명(생년월일)</th>
+        <td class="field"><input type="text" id="f_name"></td>
+        <th class="label">4. 휴직종류</th>
+        <td class="field"><input type="text" id="f_type"></td>
+      </tr>
+      <tr>
+        <th class="label">5. 휴직기간</th>
+        <td class="field" colspan="3"><input type="text" id="f_period" placeholder="예) 2026.01.01. ~ 2026.06.30."></td>
+      </tr>
+      <tr>
+        <th class="label">6. 휴직실적</th>
+        <td class="field" colspan="3"><textarea id="f_perf" rows="2"></textarea></td>
+      </tr>
+
+      <tr>
+        <th class="label">7. 보수 수령여부</th>
+        <td colspan="3">
+          <div class="sub-item">
+            <span>보수(봉급·수당) 수령</span>
+            <label class="chk-line"><input type="checkbox" name="pay" id="pay_yes">해당됨</label>
+            <label class="chk-line"><input type="checkbox" name="pay" id="pay_no">해당없음</label>
+          </div>
+          <span class="note">※ 보수 지급휴직: 공무상질병휴직, 유학휴직, 육아휴직(1년 범위)</span>
+        </td>
+      </tr>
+
+      <tr>
+        <th class="label">8. 해외체류 여부</th>
+        <td colspan="3">
+          <div class="sub-item">
+            <span>해외 체류사실</span>
+            <label class="chk-line"><input type="checkbox" name="abroad" id="abroad_yes" onchange="exclusivePair('abroad', this); toggleAbroadDetails();">해당됨</label>
+            <label class="chk-line"><input type="checkbox" name="abroad" id="abroad_no" onchange="exclusivePair('abroad', this); toggleAbroadDetails();">해당없음</label>
+          </div>
+          <div id="abroad_details">
+            <div class="sub-item">
+              <span class="idx">①</span>
+              <span>휴직 목적상 해외거주 필수여부</span>
+              <label class="chk-line"><input type="checkbox" name="abroad_req" id="req_yes" onchange="exclusivePair('abroad_req', this);">해당됨</label>
+              <label class="chk-line"><input type="checkbox" name="abroad_req" id="req_no" onchange="exclusivePair('abroad_req', this);">해당없음</label>
+              <span class="note">(※ 해외거주 필수휴직: 유학휴직, 해외동반휴직)</span>
+            </div>
+            <div class="sub-item">
+              <span class="idx">②</span>
+              <span>(필수가 아닌 경우) 체류기간</span>
+              <input type="text" class="inline-input" id="stay_months"> 개월
+            </div>
+            <div class="sub-item">
+              <span class="idx">③</span>
+              <span>체류목적</span>
+              <input type="text" id="stay_purpose" style="flex:1;min-width:200px;border:none;border-bottom:1px solid #bbb;font-family:inherit;font-size:13px;">
+            </div>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <th class="label">9. 휴직의 목적 외 사용 여부</th>
+        <td colspan="3">
+          <div class="sub-item">
+            <span class="idx">①</span><span>휴직의 목적 외 사용</span>
+            <label class="chk-line"><input type="checkbox" name="q_gate" id="gate_yes" onchange="exclusivePair('q_gate', this); toggleQ9Details();">해당됨</label>
+            <label class="chk-line"><input type="checkbox" name="q_gate" id="gate_no" onchange="exclusivePair('q_gate', this); toggleQ9Details();">해당없음</label>
+          </div>
+          <div id="q9_details">
+            <div class="sub-item">
+              <span class="idx">②</span><span>휴직의 목적 달성 가능성</span>
+              <label class="chk-line"><input type="checkbox" name="q1" id="q1_a" onchange="exclusivePair('q1', this);">가능</label>
+              <label class="chk-line"><input type="checkbox" name="q1" id="q1_b" onchange="exclusivePair('q1', this);">불가능</label>
+            </div>
+            <div class="sub-item">
+              <span class="idx">③</span><span>휴직의 목적 외 사용 기간</span>
+              <label class="chk-line"><input type="checkbox" name="q2" id="q2_yes" onchange="exclusivePair('q2', this);">해당됨</label>
+              <label class="chk-line"><input type="checkbox" name="q2" id="q2_no" onchange="exclusivePair('q2', this);">해당없음</label>
+            </div>
+            <div class="sub-item" style="padding-left:26px;">
+              <label class="chk-line"><input type="checkbox" name="q2period" onchange="exclusivePair('q2period', this);">1월 미만</label>
+              <label class="chk-line"><input type="checkbox" name="q2period" onchange="exclusivePair('q2period', this);">1월 이상~3월 미만</label>
+              <label class="chk-line"><input type="checkbox" name="q2period" onchange="exclusivePair('q2period', this);">3월 이상~6월 미만</label>
+              <label class="chk-line"><input type="checkbox" name="q2period" onchange="exclusivePair('q2period', this);">6월 이상~1년 미만</label>
+              <label class="chk-line"><input type="checkbox" name="q2period" onchange="exclusivePair('q2period', this);">1년 이상</label>
+            </div>
+            <div class="sub-item">
+              <span class="idx">④</span><span>고의성</span>
+              <label class="chk-line"><input type="checkbox" name="q3" id="q3_yes" onchange="exclusivePair('q3', this);">해당됨</label>
+              <label class="chk-line"><input type="checkbox" name="q3" id="q3_no" onchange="exclusivePair('q3', this);">해당없음</label>
+            </div>
+            <div class="sub-item">
+              <span class="idx">⑤</span><span>사회통념상 허용가능성</span>
+              <label class="chk-line"><input type="checkbox" name="q4" id="q4_a" onchange="exclusivePair('q4', this);">허용</label>
+              <label class="chk-line"><input type="checkbox" name="q4" id="q4_b" onchange="exclusivePair('q4', this);">불허용</label>
+            </div>
+            <div class="sub-item">
+              <span class="idx">⑥</span><span>기타 휴직 목적에 현저히 위배</span>
+              <label class="chk-line"><input type="checkbox" name="q5" id="q5_yes" onchange="exclusivePair('q5', this);">해당됨</label>
+              <label class="chk-line"><input type="checkbox" name="q5" id="q5_no" onchange="exclusivePair('q5', this);">해당없음</label>
+            </div>
+          </div>
+        </td>
+      </tr>
+
+      <tr>
+        <th class="label">10. 휴직자의 복무상황</th>
+        <td colspan="3" style="padding:12px;">
+          <textarea id="f_status" class="status-textarea" rows="3" placeholder="휴직 중 복무상황을 구체적으로 기재하세요.
+예) 학업 진행 경과, 자녀 양육 현황, 치료 경과 등"></textarea>
+        </td>
+      </tr>
+    </tbody></table>
+
+    <div class="sign-row">
+      <input type="text" class="date-input" id="d_year" maxlength="4"> 년
+      <input type="text" class="date-input" id="d_month" maxlength="2"> 월
+      <input type="text" class="date-input" id="d_day" maxlength="2"> 일
+      <span class="nowrap">&nbsp;&nbsp;휴직자 성명&nbsp;</span>
+      <input type="text" class="name-input" id="sign_name">
+
+      <div class="stamp-wrap" id="stampWrap" onclick="openSigModal()">
+        <span class="placeholder-txt" id="stampPlaceholder">(인)</span>
+        <canvas id="sigCanvas" width="150" height="56"></canvas>
+      </div>
+      <span class="sig-status" id="sigStatus"></span>
+    </div>
+
+    <p class="to">고용노동부장관 귀하</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sigModalOverlay">
+  <div class="modal-box">
+    <h3>서명 입력</h3>
+    <p class="modal-hint">아래 칸에 마우스(또는 손가락)로 성명을 서명해 주세요.</p>
+    <canvas id="modalCanvas" width="380" height="170"></canvas>
+    <div class="modal-actions">
+      <button type="button" onclick="clearModalSig()">지우기</button>
+      <button type="button" onclick="closeSigModal()">취소</button>
+      <button type="button" class="confirm" onclick="confirmModalSig()">확인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- 체크박스 상호배타 & 조건부 비활성화 ---------- */
+function exclusivePair(groupName, changedEl){
+  document.getElementsByName(groupName).forEach(el=>{
+    if(el !== changedEl) el.checked = false;
+  });
+}
+
+function setGroupDisabled(container, disabled){
+  container.querySelectorAll('input').forEach(el=>{
+    if(disabled){
+      el.checked = false;
+      if(el.tagName === 'INPUT' && el.type === 'text') el.value = '';
+    }
+    el.disabled = disabled;
+  });
+}
+
+function toggleAbroadDetails(){
+  const details = document.getElementById('abroad_details');
+  if(document.getElementById('abroad_no').checked){
+    setGroupDisabled(details, true);
+  } else {
+    setGroupDisabled(details, false);
+  }
+}
+
+function toggleQ9Details(){
+  const details = document.getElementById('q9_details');
+  if(document.getElementById('gate_no').checked){
+    setGroupDisabled(details, true);
+  } else if(document.getElementById('gate_yes').checked){
+    setGroupDisabled(details, false);
+  }
+}
+
+/* ---------- 서명 (팝업 모달) ---------- */
+const stampCanvas = document.getElementById('sigCanvas');
+const stampCtx = stampCanvas.getContext('2d');
+const placeholder = document.getElementById('stampPlaceholder');
+const sigStatus = document.getElementById('sigStatus');
+const modalOverlay = document.getElementById('sigModalOverlay');
+const modalCanvas = document.getElementById('modalCanvas');
+const modalCtx = modalCanvas.getContext('2d');
+
+let drawing = false;
+let hasDrawnModal = false;
+let confirmed = false;
+
+modalCtx.lineWidth = 3;
+modalCtx.lineCap = 'round';
+modalCtx.strokeStyle = '#111';
+
+function modalPos(e){
+  const rect = modalCanvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: clientX - rect.left, y: clientY - rect.top };
+}
+function startDraw(e){
+  drawing = true;
+  hasDrawnModal = true;
+  const p = modalPos(e);
+  modalCtx.beginPath();
+  modalCtx.moveTo(p.x, p.y);
+  e.preventDefault();
+}
+function moveDraw(e){
+  if(!drawing) return;
+  const p = modalPos(e);
+  modalCtx.lineTo(p.x, p.y);
+  modalCtx.stroke();
+  e.preventDefault();
+}
+function endDraw(){ drawing = false; }
+
+modalCanvas.addEventListener('mousedown', startDraw);
+modalCanvas.addEventListener('mousemove', moveDraw);
+window.addEventListener('mouseup', endDraw);
+modalCanvas.addEventListener('touchstart', startDraw, {passive:false});
+modalCanvas.addEventListener('touchmove', moveDraw, {passive:false});
+modalCanvas.addEventListener('touchend', endDraw);
+
+function openSigModal(){
+  hasDrawnModal = false;
+  modalCtx.clearRect(0,0,modalCanvas.width,modalCanvas.height);
+  modalOverlay.classList.add('open');
+}
+function closeSigModal(){
+  modalOverlay.classList.remove('open');
+}
+function clearModalSig(){
+  modalCtx.clearRect(0,0,modalCanvas.width,modalCanvas.height);
+  hasDrawnModal = false;
+}
+function clearSig(){
+  stampCtx.clearRect(0,0,stampCanvas.width,stampCanvas.height);
+  confirmed = false;
+  placeholder.style.opacity = 1;
+  sigStatus.textContent = '';
+}
+function confirmModalSig(){
+  if(!hasDrawnModal){
+    alert('서명을 먼저 입력해 주세요.');
+    return;
+  }
+  // 모달에 그린 서명을 (인) 칸 크기에 맞춰 축소해서 옮겨 그림
+  stampCtx.clearRect(0,0,stampCanvas.width,stampCanvas.height);
+  const scale = Math.min(stampCanvas.width / modalCanvas.width, stampCanvas.height / modalCanvas.height);
+  const drawW = modalCanvas.width * scale;
+  const drawH = modalCanvas.height * scale;
+  const offsetX = (stampCanvas.width - drawW) / 2;
+  const offsetY = (stampCanvas.height - drawH) / 2;
+  stampCtx.drawImage(modalCanvas, offsetX, offsetY, drawW, drawH);
+
+  placeholder.style.opacity = 0;
+  confirmed = true;
+  sigStatus.textContent = '서명완료';
+  closeSigModal();
+}
+
+/* ---------- 요약 / 제출 ---------- */
+function val(id){ return document.getElementById(id).value.trim(); }
+function pick(name, labels){
+  const boxes = document.getElementsByName(name);
+  let out = [];
+  boxes.forEach((b,i)=>{ if(b.checked) out.push(labels[i]); });
+  return out.length ? out.join(', ') : '(미체크)';
+}
+
+function buildSummary(){
+  let text = '';
+  text += '■ 휴직자 복무상황 신고서\n';
+  text += '─────────────────────────\n';
+  text += `1. 소속: ${val('f_dept')}\n`;
+  text += `2. 직급: ${val('f_rank')}\n`;
+  text += `3. 성명(생년월일): ${val('f_name')}\n`;
+  text += `4. 휴직종류: ${val('f_type')}\n`;
+  text += `5. 휴직기간: ${val('f_period')}\n`;
+  text += `6. 휴직실적: ${val('f_perf')}\n`;
+  text += `7. 보수 수령여부: ${pick('pay',['해당됨','해당없음'])}\n`;
+  text += `8. 해외체류 여부: ${pick('abroad',['해당됨','해당없음'])}\n`;
+  text += `   ① 해외거주 필수여부: ${pick('abroad_req',['해당됨','해당없음'])}\n`;
+  text += `   ② 체류기간: ${val('stay_months')} 개월\n`;
+  text += `   ③ 체류목적: ${val('stay_purpose')}\n`;
+  text += `9. 휴직의 목적 외 사용 여부\n`;
+  text += `   ① 목적 외 사용: ${pick('q_gate',['해당됨','해당없음'])}\n`;
+  text += `   ② 목적 달성 가능성: ${pick('q1',['가능','불가능'])}\n`;
+  text += `   ③ 목적 외 사용기간 해당여부: ${pick('q2',['해당됨','해당없음'])}\n`;
+  const q2p = pick('q2period',['1월 미만','1월 이상~3월 미만','3월 이상~6월 미만','6월 이상~1년 미만','1년 이상']);
+  text += `      (해당 시 기간) ${q2p}\n`;
+  text += `   ④ 고의성: ${pick('q3',['해당됨','해당없음'])}\n`;
+  text += `   ⑤ 사회통념상 허용가능성: ${pick('q4',['허용','불허용'])}\n`;
+  text += `   ⑥ 기타 목적에 현저히 위배: ${pick('q5',['해당됨','해당없음'])}\n`;
+  text += `10. 휴직자의 복무상황:\n${val('f_status')}\n`;
+  text += '─────────────────────────\n';
+  text += `${val('d_year')||'____'}년 ${val('d_month')||'__'}월 ${val('d_day')||'__'}일   휴직자 성명: ${val('sign_name')} (서명 ${confirmed ? '완료' : '미완료'})\n`;
+  text += '고용노동부장관 귀하';
+  return text;
+}
+
+function generateDistCopy(){
+  const recipient = val('recipient_email');
+  if(!recipient){
+    alert('먼저 상단에 담당자 이메일 주소를 입력해 주세요.');
+    return;
+  }
+
+  const clone = document.documentElement.cloneNode(true);
+
+  // 관리자 전용 버튼/안내문구는 배포본에서 제거
+  clone.querySelectorAll('[data-admin-only]').forEach(n => n.remove());
+
+  // 이메일 입력칸: 기본값으로 고정 + 읽기전용 처리(실수로 다른 주소로 바뀌는 것 방지)
+  const emailInput = clone.querySelector('#recipient_email');
+  emailInput.setAttribute('value', recipient);
+  emailInput.setAttribute('readonly', 'true');
+
+  // 나머지 입력값은 모두 비워서 깨끗한 배포본으로 생성
+  clone.querySelectorAll('input[type="text"]').forEach(el => el.removeAttribute('value'));
+  clone.querySelectorAll('textarea').forEach(el => el.textContent = '');
+  clone.querySelectorAll('input[type="checkbox"]').forEach(el => el.removeAttribute('checked'));
+
+  const htmlString = '<!DOCTYPE html>\n' + clone.outerHTML;
+  const blob = new Blob([htmlString], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '휴직자_복무상황_신고서_배포용.html';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  alert('담당자 이메일이 고정된 배포용 파일이 다운로드되었습니다.\n이 파일을 휴직자들에게 배포해 주세요.');
+}
+
+function submitByEmail(){
+  const recipient = val('recipient_email');
+  if(!recipient){
+    alert('상단 "제출 담당자 이메일" 칸에 제출받으실 담당자의 이메일 주소를 먼저 입력해 주세요.');
+    return;
+  }
+  if(!confirmed){
+    const proceed = confirm('서명이 완료되지 않았습니다. 서명 없이 제출하시겠습니까?');
+    if(!proceed) return;
+  }
+  const subject = encodeURIComponent(`[휴직자 복무상황 신고서] ${val('f_name') || val('sign_name') || ''} 제출`);
+  const body = encodeURIComponent(buildSummary() + '\n\n※ 본 메일은 신고서 요약본입니다. 필요 시 인쇄/PDF 저장한 원본 서식을 첨부해 주세요.');
+  window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+}
+</script>
+
+</body></html>
